@@ -1,4 +1,4 @@
-# Moodle Mairie – Plateforme de formation interne
+# Moodle – Plateforme de formation interne
 
 ## 📘 Description
 Projet de déploiement sécurisé de Moodle pour la formation des agents de la mairie.
@@ -28,4 +28,4 @@ Projet de déploiement sécurisé de Moodle pour la formation des agents de la m
 Tests réalisés : accès utilisateur, quiz, fichiers, création de cours…
 
 ## 👤 Auteur
-Ton prénom + nom (si tu veux), lien LinkedIn, école...
+Ilias.H
