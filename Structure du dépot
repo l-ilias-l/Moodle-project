@@ -1,0 +1,21 @@
+moodle-mairie/
+├── docs/                            # Documentation technique
+│   ├── 00_contexte.md
+│   ├── 01_infra_vm.md
+│   ├── 02_stack_logicielle.md
+│   ├── 03_installation_moodle.md
+│   ├── 04_securisation.md
+│   ├── 05_tests_fonctionnels.md
+│   └── 06_maintenance.md
+├── scripts/                         # Scripts bash (install, sauvegarde…)
+│   ├── install_moodle.sh
+│   ├── hardening_vm.sh
+│   └── backup_moodle.sh
+├── config/                          # Fichiers de conf (nginx, PHP, mariadb…)
+│   ├── nginx/
+│   ├── php/
+│   └── mariadb/
+├── moodledata/                      # .gitignore : ne jamais versionner
+├── .gitignore
+├── README.md                        # Présentation du projet
+└── LICENSE                          # (MIT ou autre, selon ton choix)
