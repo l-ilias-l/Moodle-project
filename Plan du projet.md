@@ -1,4 +1,6 @@
 📘 Plan détaillé du projet Moodle – Formation interne Mairie
+
+
 🧩 1. Contexte du projet
 But : Permettre aux employés de la mairie (~1000 personnes) d'accéder à des formations internes via Moodle.
 
@@ -7,6 +9,7 @@ Accès : Interne uniquement (VPN si besoin ultérieur).
 Infrastructure : VM dédiée sur un hyperviseur Proxmox, système Debian 12.7, IP statique.
 
 Objectif : Déployer une solution Moodle stable, sécurisée, maintenable et documentée.
+
 
 🏗️ 2. Étapes du projet
 Étape 0 : Préparation de l’environnement
@@ -25,6 +28,8 @@ Nom d’hôte propre (ex. moodle.mairie.local).
 
 Configuration initiale (hostname, timezone, NTP, locales…).
 
+
+
 Étape 2 : Installation de la stack logicielle
 Serveur Web : Nginx.
 
@@ -36,6 +41,8 @@ Configuration SSL (auto-signé ou Let's Encrypt interne).
 
 Sécurisation du stack (droits, pare-feu, tuning PHP/MariaDB…).
 
+
+
 Étape 3 : Déploiement de Moodle
 Téléchargement de Moodle.
 
@@ -44,6 +51,8 @@ Configuration du fichier config.php.
 Initialisation via l’interface web.
 
 Création des premiers utilisateurs/admins.
+
+
 
 Étape 4 : Sécurisation et durcissement
 Droits système (www-data, moodledata en dehors du root web).
@@ -55,6 +64,8 @@ Configuration UFW/nftables.
 Fail2ban, logs, journalctl.
 
 Surveillance des mises à jour Moodle + paquets.
+
+
 
 Étape 5 : Tests fonctionnels
 Création d’un cours test.
