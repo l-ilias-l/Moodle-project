@@ -1,1 +1,2 @@
+Lorsque l'on clone une machine à partir de la tempalte 200 un utilisateur user/user est présent de base. Afin de le modifier il faut se conneceter en root puis modifier le fichier /etc/passwd.
 
