@@ -1,0 +1,58 @@
+📄 Mémo technique : Transition certificat auto-signé → Let's Encrypt (Moodle)
+🔹 1. Situation actuelle
+Le serveur Moodle est accessible uniquement en local ou via IP.
+
+Aucun nom de domaine (DNS) pointant vers le serveur n’est encore disponible.
+
+Pour l’instant, il est impossible d’utiliser Let's Encrypt, car ce dernier nécessite une vérification publique via DNS + HTTP.
+
+✅ Solution temporaire : certificat auto-signé
+Tu peux tout à fait utiliser un certificat auto-signé sans problème en attendant. Moodle fonctionnera bien en HTTPS, mais les navigateurs afficheront un avertissement du type « connexion non sécurisée » car le certificat n’est pas signé par une autorité de confiance.
+
+Ce n’est pas bloquant pour des tests internes ou un usage restreint.
+
+▶ Commande pour générer un certificat auto-signé :
+bash
+Copier
+Modifier
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+-keyout /etc/ssl/private/moodle-selfsigned.key \
+-out /etc/ssl/certs/moodle-selfsigned.crt
+Pense à remplir correctement les champs demandés (notamment le Common Name = IP ou nom local).
+
+▶ Exemple de configuration Nginx à utiliser :
+nginx
+Copier
+Modifier
+server {
+    listen 443 ssl;
+    server_name 10.10.x.x;  # Remplacer par ton IP ou ton FQDN si connu
+
+    ssl_certificate /etc/ssl/certs/moodle-selfsigned.crt;
+    ssl_certificate_key /etc/ssl/private/moodle-selfsigned.key;
+
+    # ... configuration Moodle ici ...
+}
+🔁 Passage à Let's Encrypt (quand DNS sera prêt)
+Dès que le nom de domaine sera disponible et pointera vers ton serveur, tu pourras :
+
+T’assurer que le port 80 est ouvert temporairement.
+
+Installer certbot :
+
+bash
+Copier
+Modifier
+sudo apt install certbot python3-certbot-nginx -y
+Lancer :
+
+bash
+Copier
+Modifier
+sudo certbot --nginx
+Certbot détectera automatiquement Moodle dans la config Nginx et générera + appliquera le certificat Let's Encrypt.
+
+🔒 Bonnes pratiques :
+Interdire l’accès HTTP (port 80) une fois le certificat Let’s Encrypt obtenu, sauf si besoin de renouvellement automatique.
+
+Si tu restes en auto-signé longtemps, tu peux importer le certificat dans les navigateurs ou clients pour éviter l’alerte de sécurité.
