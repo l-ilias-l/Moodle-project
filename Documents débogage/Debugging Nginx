@@ -1,1 +1,133 @@
+# Documentation de débogage de l'installation Moodle sous Nginx
+
+## Problème rencontré
+
+Lors de l'installation de Moodle (v4.4) sous Nginx, le CSS et le JavaScript ne se chargeaient pas correctement, provoquant une interface sans style. Le navigateur affichait des erreurs de type :
+
+```
+/theme/yui_combo.php?... -> ERR_CONTENT_DECODING_FAILED
+```
+
+En parallèle, Moodle affichait également l'erreur suivante après une réinitialisation de base de données :
+
+```
+ERREUR : erreur de lecture de la base de données
+```
+
+## Étapes de dépannage et solutions apportées
+
+### 1. Réinitialisation de la base de données
+
+Lors d'une mauvaise configuration initiale avec un utilisateur non souhaité (moodleroot), il a été décidé de supprimer et de recréer proprement la base de données avec l'utilisateur souhaité (`sysadmin`).
+
+```bash
+mysql -u root -p -e "DROP DATABASE moodle; CREATE DATABASE moodle DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
+
+Cependant, Moodle ne pouvait plus accéder à la base, et l'erreur "erreur de lecture de la base de données" persistait. Après vérification :
+
+* L'utilisateur `sysadmin` n'avait pas les bons droits.
+* Les tables n'étaient pas créées.
+
+**Solution** : relancer correctement l'installation depuis le navigateur après avoir supprimé le fichier `config.php`.
+
+```bash
+rm /var/www/html/moodle/config.php
+```
+
+Et suivre l'assistant d'installation via navigateur.
+
+---
+
+### 2. Problème CSS/JS : fichiers non chargés
+
+Les ressources CSS et JS de Moodle n’étaient pas chargées. Après vérification :
+
+* Les fichiers comme `/theme/styles.php` ou `/theme/yui_combo.php` étaient renvoyés avec un mauvais encodage ou mal réécrits.
+
+#### Tentative 1 : zlib.output\_compression (échouée)
+
+Ajout de :
+
+```ini
+zlib.output_compression = On
+zlib.output_compression_level = 6
+```
+
+Dans `/etc/php/8.2/fpm/php.ini` + redémarrage de PHP-FPM et Nginx → échec.
+
+#### ✅ Solution retenue : configuration Nginx
+
+La cause venait des **règles de réécriture manquantes dans Nginx**. Moodle a besoin de redirections particulières pour gérer certains fichiers dynamiques.
+
+##### 🔧 Configuration Nginx corrigée (Moodle à la racine)
+
+```nginx
+server {
+    listen 80;
+    server_name 10.10.153.101;
+
+    root /var/www/html/moodle;
+    index index.php index.html index.htm;
+
+    # Réécriture spéciale Moodle
+    rewrite ^/(.*\.php)(/)(.*)$ /$1?file=/$3 last;
+
+    location / {
+        try_files $uri $uri/ /index.php?q=$request_uri;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:/run/php/php8.2-fpm.sock;
+        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot|otf|ttc|mp4|webm|ogg)$ {
+        expires max;
+        log_not_found off;
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+}
+```
+
+##### ✅ Étapes de finalisation
+
+1. **Redémarrer les services**
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+sudo systemctl restart php8.2-fpm
+```
+
+2. **Vider les caches Moodle**
+
+```bash
+sudo -u www-data php /var/www/html/moodle/admin/cli/purge_caches.php
+```
+
+3. **Forcer le rechargement du navigateur**
+
+Ctrl+F5 ou vider le cache manuellement.
+
+---
+
+## Résultat
+
+* Moodle fonctionne.
+* L’installation a bien utilisé l’utilisateur `sysadmin`.
+* Le CSS/JS s’affiche correctement.
+* Aucune erreur restante dans les logs.
+
+## Remarques finales
+
+* Toujours bien s’assurer que la configuration Nginx est compatible avec Moodle (PHP dynamique, redirections).
+* Supprimer le fichier `config.php` avant toute réinstallation.
+* Vérifier les droits utilisateurs sur la base de données.
+* Ne pas oublier de purger les caches Moodle après chaque modification serveur.
 
